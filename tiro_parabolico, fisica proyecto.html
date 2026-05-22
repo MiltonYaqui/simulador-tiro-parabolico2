@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulador Interactivo de Tiro Parabólico</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --panel-bg: #ffffff;
+            --text-color: #2c3e50;
+            --primary-color: #3498db;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --danger-color: #e74c3c;
+            --dark-color: #2c3e50;
+            --header-bg: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            --tooltip-bg: rgba(44, 62, 80, 0.95);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #panel-control {
+            width: 380px;
+            background-color: var(--panel-bg);
+            box-shadow: 4px 0 25px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        .panel-header {
+            padding: 20px 15px 15px 15px;
+            background: var(--header-bg);
+            color: white;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .panel-header h1 { 
+            margin: 0 0 10px 0; 
+            font-size: 1.4em; 
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-header .autor-info {
+            margin: 0;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            font-size: 0.78em;
+            color: rgba(255,255,255,0.85);
+            line-height: 1.6;
+        }
+
+        .panel-header .autor-info span.autor-nombre {
+            display: block;
+            font-weight: 600;
+            font-size: 1.05em;
+            color: #ffffff;
+            letter-spacing: 0.3px;
+        }
+
+        .panel-header .autor-info span.autor-carnet {
+            display: block;
+            font-family: 'Courier New', monospace;
+            color: var(--warning-color);
+            font-size: 0.95em;
+            letter-spacing: 0.5px;
+        }
+
+        .seccion-titulo {
+            background-color: transparent;
+            padding: 15px 15px 8px 15px;
+            font-size: 0.85em;
+            font-weight: 700;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #ecf0f1;
+            margin-bottom: 5px;
+        }
+
+        .control-group { padding: 10px 15px; }
+
+        .input-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .input-row label { 
+            font-weight: 600; 
+            font-size: 0.9em; 
+            flex: 1; 
+            color: var(--dark-color); 
+        }
+
+        .input-row input[type="number"] {
+            width: 80px;
+            padding: 6px 8px;
+            border: 1px solid #dcdde1;
+            border-radius: 6px;
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            font-weight: bold;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+        
+        .input-row input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            background-color: #fff;
+        }
+
+        .input-row span.unidad { 
+            width: 40px; 
+            text-align: left; 
+            padding-left: 8px; 
+            font-size: 0.85em; 
+            color: #95a5a6; 
+            font-weight: 600;
+        }
+
+        .checkbox-row { 
+            margin-bottom: 12px; 
+            font-weight: 600; 
+            color: var(--danger-color); 
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+        }
+        
+        .checkbox-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+        
+        .radio-group label { 
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            font-size: 0.9em;
+            padding: 6px 10px;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+        .radio-group label:hover {
+            background-color: #f8f9fa;
+        }
+        .radio-group input[type="radio"] { 
+            margin-right: 10px; 
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        
+        .color-coord { color: #e74c3c; accent-color: #e74c3c; }
+        .color-vel { color: #d63384; accent-color: #d63384;}
+        .color-acel { color: #0d6efd; accent-color: #0d6efd;}
+        .color-fuerza { color: #198754; accent-color: #198754;}
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-top: 1px solid #ecf0f1;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 5px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            color: white;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+        }
+        button:active { 
+            transform: scale(0.96); 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .btn-lanzar { background-color: var(--success-color); }
+        .btn-lanzar:hover { background-color: #27ae60; }
+        
+        .btn-pausar { background-color: var(--warning-color); color: #2c3e50; }
+        .btn-pausar:hover { background-color: #f39c12; }
+        
+        .btn-reiniciar { background-color: var(--primary-color); }
+        .btn-reiniciar:hover { background-color: #2980b9; }
+
+        .resultados-box {
+            padding: 15px;
+            background-color: #ffffff;
+            font-size: 0.9em;
+        }
+        .resultados-box p { 
+            margin: 8px 0; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px dashed #ecf0f1;
+            padding-bottom: 5px;
+        }
+        .resultados-box p:last-child {
+            border-bottom: none;
+        }
+        .resultados-box strong { color: var(--dark-color); }
+        .res-valor { 
+            font-family: 'Courier New', monospace; 
+            font-weight: bold; 
+            color: var(--primary-color); 
+            font-size: 1.15em;
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .etiqueta-eje { font-size: 0.8em; color: #95a5a6; margin-left: 5px; }
+
+        #panel-datos-tiempo-real {
+            background-color: #fff9e6; 
+            border-bottom: 1px solid #ffe69c;
+            border-top: 1px solid #ffe69c;
+        }
+        #panel-datos-tiempo-real .res-valor { color: #d35400; background: #ffeaa7;}
+
+        .formulas-box p { 
+            justify-content: flex-start; 
+            gap: 15px; 
+            font-family: 'Segoe UI', sans-serif;
+            border-bottom: none;
+            margin: 4px 0;
+        }
+        .formulas-box strong { 
+            display: inline-block; 
+            width: 65px; 
+            color: var(--primary-color); 
+        }
+        .form-eq { 
+            font-family: 'Courier New', monospace; 
+            font-size: 1.05em; 
+            color: #7f8c8d; 
+            background: #f8f9fa;
+            padding: 2px 8px;
+            border-radius: 4px;
+            flex: 1;
+        }
+
+        #visual-area {
+            flex: 1;
+            position: relative;
+            background: linear-gradient(180deg, 
+                #1a6fa8 0%, 
+                #2e8bc0 18%, 
+                #5dade2 40%, 
+                #aed6f1 68%, 
+                #d6eaf8 85%, 
+                #eaf4fb 100%);
+            overflow: hidden;
+        }
+
+        /* Nubes decorativas via pseudo-elementos en capas absolutas */
+        #nubes-fondo {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 60%;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .nube {
+            position: absolute;
+            background: rgba(255,255,255,0.55);
+            border-radius: 50px;
+        }
+        .nube::before, .nube::after {
+            content: '';
+            position: absolute;
+            background: rgba(255,255,255,0.55);
+            border-radius: 50%;
+        }
+        .n1 { width: 120px; height: 38px; top: 8%; left: 12%; }
+        .n1::before { width: 60px; height: 55px; top: -28px; left: 18px; }
+        .n1::after  { width: 45px; height: 45px; top: -20px; left: 55px; }
+
+        .n2 { width: 90px; height: 28px; top: 20%; left: 55%; opacity: 0.7; }
+        .n2::before { width: 45px; height: 42px; top: -22px; left: 14px; }
+        .n2::after  { width: 35px; height: 35px; top: -16px; left: 43px; }
+
+        .n3 { width: 70px; height: 22px; top: 12%; left: 78%; opacity: 0.5; }
+        .n3::before { width: 36px; height: 34px; top: -18px; left: 10px; }
+        .n3::after  { width: 28px; height: 28px; top: -13px; left: 34px; }
+
+        .n4 { width: 100px; height: 30px; top: 32%; left: 30%; opacity: 0.45; }
+        .n4::before { width: 50px; height: 46px; top: -24px; left: 16px; }
+        .n4::after  { width: 38px; height: 38px; top: -17px; left: 52px; }
+
+        #suelo {
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%; height: 20%;
+            z-index: 2;
+            overflow: hidden;
+        }
+        /* Capa de tierra */
+        #suelo::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%; height: 55%;
+            background: linear-gradient(180deg, #6d4c1f 0%, #5a3e15 100%);
+        }
+        /* Capa de césped */
+        #suelo::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 50%;
+            background: linear-gradient(180deg, #27ae60 0%, #1e8449 60%, #196f3d 100%);
+            border-top: 4px solid #58d68d;
+            z-index: 1;
+        }
+
+        #cuadricula {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.12) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px),
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 100px 100px, 100px 100px, 25px 25px, 25px 25px;
+            z-index: 3;
+        }
+
+        #miCanvas { position: absolute; top: 0; left: 0; z-index: 4; width: 100%; height: 100%; }
+
+        #tooltip {
+            position: absolute;
+            background-color: var(--tooltip-bg);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            z-index: 10;
+            pointer-events: none;
+            display: none;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            line-height: 1.6;
+            font-family: 'Courier New', monospace;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(4px);
+        }
+        #tooltip strong { color: var(--warning-color); font-family: 'Segoe UI', sans-serif;}
+        .tooltip-vy { color: #ff7675; }
+        .tooltip-vx { color: #74b9ff; }
+        
+        #panel-control::-webkit-scrollbar { width: 8px; }
+        #panel-control::-webkit-scrollbar-track { background: #f1f1f1; }
+        #panel-control::-webkit-scrollbar-thumb { background: #bdc3c7; border-radius: 4px; }
+        #panel-control::-webkit-scrollbar-thumb:hover { background: #95a5a6; }
+    </style>
+</head>
+<body>
+
+    <div id="panel-control">
+        <div class="panel-header">
+            <h1>Tiro Parabólico</h1>
+            <div class="autor-info">
+                <span class="autor-nombre">Milton Joel Ixcoy Yaqui</span>
+                <span class="autor-carnet">Carnet: 1990-25-14455</span>
+            </div>
+        </div>
+
+        <div class="seccion-titulo">Parámetros Iniciales</div>
+        <div class="control-group">
+            <div class="checkbox-row">
+                <input type="checkbox" id="lenta"> <label for="lenta" style="cursor: pointer;">Animación lenta</label>
+            </div>
+            <div class="input-row">
+                <label>Altura inicial:</label>
+                <input type="number" id="h0" value="5.00" step="0.5" min="0">
+                <span class="unidad">m</span>
+            </div>
+            <div class="input-row">
+                <label>Velocidad inicial:</label>
+                <input type="number" id="v0" value="18.00" step="1" min="0">
+                <span class="unidad">m/s</span>
+            </div>
+            <div class="input-row">
+                <label>Ángulo de incl.:</label>
+                <input type="number" id="angulo" value="45.00" step="1" min="0" max="90">
+                <span class="unidad">°</span>
+            </div>
+            <div class="input-row">
+                <label>Masa:</label>
+                <input type="number" id="masa" value="1.00" step="0.1" min="0.1">
+                <span class="unidad">kg</span>
+            </div>
+            <div class="input-row">
+                <label>Gravedad (g):</label>
+                <input type="number" id="g" value="9.81" step="0.1">
+                <span class="unidad">m/s²</span>
+            </div>
+            
+            <div class="checkbox-row" style="margin-top: 15px; border-top: 1px dashed #bdc3c7; padding-top: 15px;">
+                <input type="checkbox" id="con-aire"> <label for="con-aire" style="cursor: pointer; color: var(--dark-color);">Resistencia del aire</label>
+            </div>
+            <div class="input-row" id="fila-k-aire" style="display:none;">
+                <label>Coef. arrastre (k):</label>
+                <input type="number" id="k-aire" value="0.05" step="0.01" min="0">
+                <span class="unidad">kg/m</span>
+            </div>
+        </div>
+
+        <div class="seccion-titulo">Vectores</div>
+        <div class="control-group radio-group">
+            <label class="color-coord"><input type="radio" name="vista" value="coordenadas" checked> Coordenadas (Sin vectores)</label>
+            <label class="color-vel"><input type="radio" name="vista" value="velocidad"> Componentes de Velocidad</label>
+            <label class="color-acel"><input type="radio" name="vista" value="aceleracion"> Vector de Aceleración (g)</label>
+            <label class="color-fuerza"><input type="radio" name="vista" value="fuerza"> Vector de Fuerza (Peso)</label>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-lanzar" onclick="lanzar()">Lanzar</button>
+            <button class="btn-pausar" onclick="pausar()">Pausar</button>
+            <button class="btn-reiniciar" onclick="reiniciar()">Reiniciar</button>
+        </div>
+
+        <div class="seccion-titulo">Tiempo Real</div>
+        <div class="resultados-box" id="panel-datos-tiempo-real">
+            <p><strong>Tiempo:</strong> <span id="rt-tiempo" class="res-valor">0.00 s</span></p>
+            <p><strong>Eje X:</strong> <span><span id="rt-x" class="res-valor">0.00 m</span> <span class="etiqueta-eje">(horiz.)</span></span></p>
+            <p><strong>Eje Y:</strong> <span><span id="rt-y" class="res-valor">5.00 m</span> <span class="etiqueta-eje">(vert.)</span></span></p>
+        </div>
+
+        <div class="seccion-titulo">Resultados del Vuelo</div>
+        <div class="resultados-box">
+            <p><strong>Distancia total:</strong> <span id="res-alcance" class="res-valor">0.00 m</span></p>
+            <p><strong>Altura máxima:</strong> <span id="res-altura" class="res-valor">0.00 m</span></p>
+            <p><strong>Tiempo de vuelo:</strong> <span id="res-tiempo" class="res-valor">0.00 s</span></p>
+        </div>
+
+        <div class="seccion-titulo">Fórmulas</div>
+        <div class="resultados-box formulas-box">
+            <p><strong>v<sub>0x</sub></strong> <span class="form-eq">= v<sub>0</sub> &middot; cos(&theta;)</span></p>
+            <p><strong>v<sub>0y</sub></strong> <span class="form-eq">= v<sub>0</sub> &middot; sin(&theta;)</span></p>
+            <p><strong>t<sub>vuelo</sub></strong> <span class="form-eq">= (v<sub>0y</sub> + &radic;(v<sub>0y</sub>&sup2; + 2gh<sub>0</sub>)) / g</span></p>
+            <p><strong>h<sub>max</sub></strong> <span class="form-eq">= h<sub>0</sub> + v<sub>0y</sub>&sup2; / (2g)</span></p>
+            <p><strong>x<sub>max</sub></strong> <span class="form-eq">= v<sub>0x</sub> &middot; t<sub>vuelo</sub></span></p>
+            
+            <div id="formulas-aire" style="display:none; margin-top: 15px; border-top: 1px dashed #bdc3c7; padding-top: 12px;">
+                <p style="font-size: 0.85em; color: var(--danger-color); justify-content: center; margin-bottom: 8px;"><em>Fricción (Integración numérica)</em></p>
+                <p><strong>a<sub>x</sub></strong> <span class="form-eq">= -(k/m) &middot; v &middot; v<sub>x</sub></span></p>
+                <p><strong>a<sub>y</sub></strong> <span class="form-eq">= -g - (k/m) &middot; v &middot; v<sub>y</sub></span></p>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="visual-area">
+        <div id="nubes-fondo">
+            <div class="nube n1"></div>
+            <div class="nube n2"></div>
+            <div class="nube n3"></div>
+            <div class="nube n4"></div>
+        </div>
+        <div id="suelo"></div>
+        <div id="cuadricula"></div>
+        <canvas id="miCanvas"></canvas>
+        <div id="tooltip"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('miCanvas');
+        const ctx = canvas.getContext('2d');
+        const visualArea = document.getElementById('visual-area');
+        const tooltip = document.getElementById('tooltip');
+
+        let animacionId;
+        let estado = 'stop';
+        let tActual = 0;
+        let trayectoriaPuntos = [];
+        let parametros = {};
+        
+        let escala = 15;
+        let originX, originY;
+
+        function redimensionarCanvas() {
+            canvas.width = visualArea.clientWidth;
+            canvas.height = visualArea.clientHeight;
+            originX = canvas.width * 0.1;
+            originY = canvas.height * 0.8;
+            if(estado === 'stop') leerParametros(); 
+            dibujarEscena();
+        }
+        window.addEventListener('resize', redimensionarCanvas);
+
+        function leerParametros() {
+            const h0 = parseFloat(document.getElementById('h0').value) || 0;
+            const v0 = parseFloat(document.getElementById('v0').value) || 0;
+            const ang = parseFloat(document.getElementById('angulo').value) * Math.PI / 180;
+            const masa = parseFloat(document.getElementById('masa').value) || 1;
+            const g = parseFloat(document.getElementById('g').value) || 9.81;
+            
+            const conAire = document.getElementById('con-aire').checked;
+            const kAire = parseFloat(document.getElementById('k-aire').value) || 0;
+
+            const vx0 = v0 * Math.cos(ang);
+            const vy0 = v0 * Math.sin(ang);
+            
+            parametros = { h0, v0, vx0, vy0, ang, masa, g, conAire, kAire };
+            
+            precalcularTrayectoria(); 
+
+            document.getElementById('res-alcance').innerText = isNaN(parametros.alcanceMax) ? "0.00 m" : parametros.alcanceMax.toFixed(2) + ' m';
+            document.getElementById('res-altura').innerText = isNaN(parametros.hMax) ? "0.00 m" : parametros.hMax.toFixed(2) + ' m';
+            document.getElementById('res-tiempo').innerText = isNaN(parametros.tTotal) ? "0.00 s" : parametros.tTotal.toFixed(2) + ' s';
+
+            actualizarPanelTiempoReal(0, 0, h0);
+        }
+
+        function actualizarPanelTiempoReal(t, x, y) {
+            document.getElementById('rt-tiempo').innerText = t.toFixed(2) + ' s';
+            document.getElementById('rt-x').innerText = x.toFixed(2) + ' m';
+            document.getElementById('rt-y').innerText = y.toFixed(2) + ' m';
+        }
+
+        function precalcularTrayectoria() {
+            trayectoriaPuntos = [];
+            
+            if (!parametros.conAire) {
+                parametros.tTotal = (parametros.vy0 + Math.sqrt(Math.pow(parametros.vy0, 2) + 2 * parametros.g * parametros.h0)) / parametros.g;
+                parametros.hMax = parametros.h0 + (Math.pow(parametros.vy0, 2)) / (2 * parametros.g);
+                parametros.alcanceMax = parametros.vx0 * parametros.tTotal;
+
+                if (isNaN(parametros.tTotal)) return;
+
+                const numPuntos = 60;
+                const dt = parametros.tTotal / numPuntos;
+                for (let i = 0; i <= numPuntos; i++) {
+                    const t = i * dt;
+                    const x = parametros.vx0 * t;
+                    const y = parametros.h0 + parametros.vy0 * t - 0.5 * parametros.g * t**2;
+                    const vy = parametros.vy0 - parametros.g * t;
+                    trayectoriaPuntos.push({ t, x, y, vx: parametros.vx0, vy });
+                }
+            } else {
+                let t = 0, x = 0, y = parametros.h0, vx = parametros.vx0, vy = parametros.vy0;
+                let dt = 0.01; 
+                let hMax = parametros.h0;
+                let tempPuntos = [];
+                
+                while (y >= 0 && t < 100) { 
+                    tempPuntos.push({ t, x, y, vx, vy });
+                    
+                    let velocidadActual = Math.sqrt(vx*vx + vy*vy);
+                    let ax = -(parametros.kAire / parametros.masa) * velocidadActual * vx;
+                    let ay = -parametros.g - (parametros.kAire / parametros.masa) * velocidadActual * vy;
+                    
+                    vx += ax * dt;
+                    vy += ay * dt;
+                    x += vx * dt;
+                    y += vy * dt;
+                    t += dt;
+                    
+                    if (y > hMax) hMax = y;
+                }
+                
+                tempPuntos.push({ t, x, y: 0, vx, vy }); 
+                
+                parametros.trayectoriaCompleta = tempPuntos; 
+                parametros.tTotal = t;
+                parametros.hMax = hMax;
+                parametros.alcanceMax = x;
+
+                const step = Math.max(1, Math.floor(tempPuntos.length / 60));
+                for(let i=0; i < tempPuntos.length; i+=step) {
+                    trayectoriaPuntos.push(tempPuntos[i]);
+                }
+                if (trayectoriaPuntos[trayectoriaPuntos.length-1] !== tempPuntos[tempPuntos.length-1]) {
+                    trayectoriaPuntos.push(tempPuntos[tempPuntos.length-1]);
+                }
+            }
+        }
+
+        function obtenerEstadoEnTiempo(t) {
+            if (!parametros.conAire) {
+                const x = parametros.vx0 * t;
+                const y = parametros.h0 + parametros.vy0 * t - 0.5 * parametros.g * t**2;
+                const vy = parametros.vy0 - parametros.g * t;
+                return { x, y: y < 0 ? 0 : y, vx: parametros.vx0, vy };
+            } else {
+                const pts = parametros.trayectoriaCompleta;
+                if (!pts || pts.length === 0) return { x: 0, y: 0, vx: 0, vy: 0 };
+                if (t >= parametros.tTotal) return pts[pts.length - 1];
+                
+                let idx = Math.floor(t / 0.01);
+                if(idx >= pts.length - 1) return pts[pts.length - 1];
+                
+                let p1 = pts[idx];
+                let p2 = pts[idx + 1];
+                let dt = p2.t - p1.t;
+                if (dt === 0) return p1;
+                let f = (t - p1.t) / dt; 
+                return {
+                    x: p1.x + (p2.x - p1.x) * f,
+                    y: Math.max(0, p1.y + (p2.y - p1.y) * f),
+                    vx: p1.vx + (p2.vx - p1.vx) * f,
+                    vy: p1.vy + (p2.vy - p1.vy) * f
+                };
+            }
+        }
+
+        function lanzar() {
+            if (estado === 'stop') {
+                leerParametros();
+                tActual = 0;
+            }
+            estado = 'play';
+            cancelAnimationFrame(animacionId);
+            animar();
+        }
+
+        function pausar() {
+            if (estado === 'play') {
+                estado = 'pause';
+            } else if (estado === 'pause') {
+                estado = 'play';
+                animar();
+            }
+        }
+
+        function reiniciar() {
+            estado = 'stop';
+            cancelAnimationFrame(animacionId);
+            tActual = 0;
+            leerParametros();
+            dibujarEscena();
+            tooltip.style.display = 'none';
+        }
+
+        function animar() {
+            if (estado !== 'play') return;
+
+            const esLenta = document.getElementById('lenta').checked;
+            const pasoTiempo = esLenta ? 0.008 : 0.03; 
+            
+            tActual += pasoTiempo;
+
+            if (tActual >= parametros.tTotal) {
+                tActual = parametros.tTotal;
+                estado = 'stop';
+            }
+
+            dibujarEscena();
+
+            if (estado === 'play') {
+                animacionId = requestAnimationFrame(animar);
+            }
+        }
+
+        function dibujarEscena() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (isNaN(parametros.tTotal)) return;
+
+            const pixelesXDisp = canvas.width * 0.8;
+            const pixelesYDisp = canvas.height * 0.7;
+            escala = Math.min(pixelesXDisp / (parametros.alcanceMax || 1), pixelesYDisp / (parametros.hMax || 1));
+
+            dibujarCañon(parametros.h0, parametros.ang);
+            
+            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.strokeStyle = 'rgba(44,62,80,0.35)';
+            for (const p of trayectoriaPuntos) {
+                if (p.t > tActual && estado !== 'stop') continue;
+                const px = originX + p.x * escala;
+                const py = originY - p.y * escala;
+                ctx.beginPath();
+                ctx.arc(px, py, 3, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,255,255,0.75)';
+                ctx.strokeStyle = 'rgba(44,62,80,0.4)';
+                ctx.lineWidth = 1;
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            const estadoAct = obtenerEstadoEnTiempo(tActual);
+            actualizarPanelTiempoReal(tActual, estadoAct.x, estadoAct.y);
+
+            const pxAct = originX + estadoAct.x * escala;
+            const pyAct = originY - estadoAct.y * escala;
+
+            // Sombra del proyectil en el suelo
+            ctx.beginPath();
+            ctx.ellipse(pxAct, originY - 2, 10, 4, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.fill();
+
+            // Proyectil con gradiente radial
+            const grad = ctx.createRadialGradient(pxAct - 3, pyAct - 3, 1, pxAct, pyAct, 10);
+            grad.addColorStop(0, '#f0f0f0');
+            grad.addColorStop(0.4, '#c0392b');
+            grad.addColorStop(1, '#7b241c');
+            ctx.beginPath();
+            ctx.arc(pxAct, pyAct, 10, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            dibujarVectores(pxAct, pyAct, estadoAct.vx, estadoAct.vy);
+        }
+
+        function dibujarCañon(h0, anguloRad) {
+            const pyBase = originY - h0 * escala;
+            
+            // Pedestal / soporte
+            const gradPedestal = ctx.createLinearGradient(originX - 15, 0, originX + 15, 0);
+            gradPedestal.addColorStop(0, '#7f8c8d');
+            gradPedestal.addColorStop(0.5, '#95a5a6');
+            gradPedestal.addColorStop(1, '#6c7a7d');
+            ctx.fillStyle = gradPedestal;
+            ctx.fillRect(originX - 15, pyBase, 30, h0 * escala);
+
+            // Línea decorativa del pedestal
+            ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(originX - 15, pyBase, 30, h0 * escala);
+            
+            // Tubo del cañón
+            ctx.save();
+            ctx.translate(originX, pyBase);
+            ctx.rotate(-anguloRad);
+
+            // Sombra del tubo
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetY = 3;
+
+            const gradTubo = ctx.createLinearGradient(0, -9, 0, 9);
+            gradTubo.addColorStop(0, '#4a5568');
+            gradTubo.addColorStop(0.3, '#2d3748');
+            gradTubo.addColorStop(0.7, '#1a202c');
+            gradTubo.addColorStop(1, '#0d1117');
+            ctx.fillStyle = gradTubo;
+            ctx.beginPath();
+            ctx.roundRect(0, -9, 50, 18, [0, 6, 6, 0]);
+            ctx.fill();
+
+            // Brillo superior del tubo
+            ctx.shadowColor = 'transparent';
+            ctx.fillStyle = 'rgba(255,255,255,0.12)';
+            ctx.beginPath();
+            ctx.roundRect(2, -7, 46, 6, [0, 4, 0, 0]);
+            ctx.fill();
+
+            // Boca del cañón (aro)
+            ctx.fillStyle = '#1a202c';
+            ctx.strokeStyle = '#4a5568';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.roundRect(44, -11, 8, 22, 3);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.restore();
+            
+            // Base circular (pivote)
+            const gradPivote = ctx.createRadialGradient(originX - 2, pyBase - 2, 2, originX, pyBase, 14);
+            gradPivote.addColorStop(0, '#e74c3c');
+            gradPivote.addColorStop(0.6, '#c0392b');
+            gradPivote.addColorStop(1, '#922b21');
+            ctx.beginPath();
+            ctx.arc(originX, pyBase, 14, 0, Math.PI*2);
+            ctx.fillStyle = gradPivote;
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Tornillo central del pivote
+            ctx.beginPath();
+            ctx.arc(originX, pyBase, 4, 0, Math.PI*2);
+            ctx.fillStyle = '#7b241c';
+            ctx.fill();
+        }
+
+        function dibujarVectores(xP, yP, vxAct, vyAct) {
+            const radioSeleccionado = document.querySelector('input[name="vista"]:checked');
+            if(!radioSeleccionado) return;
+            
+            const vista = radioSeleccionado.value;
+            ctx.lineWidth = 2;
+            
+            if (vista === 'velocidad') {
+                dibujarFlecha(xP, yP, xP + vxAct * 2, yP, '#fd79a8');
+                dibujarFlecha(xP, yP, xP, yP - vyAct * 2, '#fd79a8');
+                dibujarFlecha(xP, yP, xP + vxAct * 2, yP - vyAct * 2, '#d63384'); 
+            } 
+            else if (vista === 'aceleracion') {
+                let ax = 0;
+                let ay = -parametros.g;
+                if (parametros.conAire) {
+                    let v = Math.sqrt(vxAct*vxAct + vyAct*vyAct);
+                    ax = -(parametros.kAire / parametros.masa) * v * vxAct;
+                    ay = -parametros.g - (parametros.kAire / parametros.masa) * v * vyAct;
+                }
+                dibujarFlecha(xP, yP, xP + ax * 3, yP - ay * 3, '#0d6efd');
+            }
+            else if (vista === 'fuerza') {
+                const fuerzaPeso = parametros.masa * parametros.g;
+                dibujarFlecha(xP, yP, xP, yP + (fuerzaPeso > 10 ? 10 : fuerzaPeso) * 3, '#198754'); 
+                
+                if (parametros.conAire) {
+                    let v = Math.sqrt(vxAct*vxAct + vyAct*vyAct);
+                    let fArrastreX = -parametros.kAire * v * vxAct;
+                    let fArrastreY = -parametros.kAire * v * vyAct;
+                    dibujarFlecha(xP, yP, xP + fArrastreX * 3, yP - fArrastreY * 3, '#dc3545');
+                }
+            }
+        }
+
+        function dibujarFlecha(fromx, fromy, tox, toy, color) {
+            const headlen = 8; 
+            const dx = tox - fromx;
+            const dy = toy - fromy;
+            const angle = Math.atan2(dy, dx);
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.moveTo(fromx, fromy);
+            ctx.lineTo(tox, toy);
+            ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.moveTo(tox, toy);
+            ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.stroke();
+        }
+
+        canvas.addEventListener('mousemove', function(e) {
+            if (trayectoriaPuntos.length === 0) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const mouseXMetros = (mouseX - originX) / escala;
+            const mouseYMetros = (originY - mouseY) / escala;
+
+            let puntoCercano = null;
+            let distMinima = 1.0; 
+
+            for (const p of trayectoriaPuntos) {
+                if (p.t > tActual && estado !== 'stop') continue; 
+                const dist = Math.sqrt((p.x - mouseXMetros)**2 + (p.y - mouseYMetros)**2);
+                if (dist < distMinima) {
+                    distMinima = dist;
+                    puntoCercano = p;
+                }
+            }
+
+            if (puntoCercano) {
+                const px = originX + puntoCercano.x * escala;
+                const py = originY - puntoCercano.y * escala;
+
+                tooltip.innerHTML = `
+                    <strong>Tiempo:</strong> ${puntoCercano.t.toFixed(2)} s<br>
+                    <strong>x:</strong> ${puntoCercano.x.toFixed(2)} m<br>
+                    <strong>y:</strong> ${puntoCercano.y.toFixed(2)} m<br>
+                    <span class="tooltip-vx"><strong>v<sub>x</sub>:</strong> ${puntoCercano.vx.toFixed(2)} m/s</span><br>
+                    <span class="tooltip-vy"><strong>v<sub>y</sub>:</strong> ${puntoCercano.vy.toFixed(2)} m/s</span>
+                `;
+                tooltip.style.left = (px + 15) + 'px';
+                tooltip.style.top = (py - 80) + 'px';
+                tooltip.style.display = 'block';
+
+                dibujarEscena();
+                ctx.beginPath();
+                ctx.arc(px, py, 6, 0, Math.PI * 2);
+                ctx.strokeStyle = 'white'; 
+                ctx.lineWidth = 2; 
+                ctx.stroke();
+            } else {
+                tooltip.style.display = 'none';
+                if(estado === 'pause' || estado === 'stop') dibujarEscena();
+            }
+        });
+
+        document.getElementById('con-aire').addEventListener('change', function() {
+            document.getElementById('fila-k-aire').style.display = this.checked ? 'flex' : 'none';
+            document.getElementById('formulas-aire').style.display = this.checked ? 'block' : 'none';
+            if(estado === 'stop') {
+                leerParametros();
+                dibujarEscena();
+            }
+        });
+
+        document.querySelectorAll('#panel-control input').forEach(input => {
+            if(input.id !== 'con-aire') { 
+                input.addEventListener('input', () => {
+                    if (estado === 'stop') {
+                        leerParametros();
+                        dibujarEscena();
+                    }
+                });
+            }
+        });
+
+        redimensionarCanvas();
+        leerParametros();
+        dibujarEscena();
+
+    </script>
+</body>
+</html>
